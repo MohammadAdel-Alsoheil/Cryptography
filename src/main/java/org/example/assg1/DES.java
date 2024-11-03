@@ -1,10 +1,8 @@
 package org.example.assg1;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import java.util.*;
 
-public class OneRoundDes {
+public class DES {
     private int KEYSIZE = 64; // in bits
     private String KEY;
     private String LEFTKEY = "";
@@ -122,14 +120,14 @@ public class OneRoundDes {
     );
 
 
-    public OneRoundDes() {
+    public DES() {
         this.KEY = generateKey();
         permutedChoiceOne();
         //System.out.println(KEY);
 
     }
 
-    public OneRoundDes(String KEY) {
+    public DES(String KEY) {
         this.KEY = KEY;
         permutedChoiceOne();
     }
@@ -351,7 +349,7 @@ public class OneRoundDes {
     public static void main(String[] args) {
         //0000000100100011010001010110011110001001101010111100110111101111
 
-        OneRoundDes Ds = new OneRoundDes();
+        DES Ds = new DES();
         String text = "hello";
         String cipher = Ds.encrypt(text);
         System.out.println("The main text is: " + text);
