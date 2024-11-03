@@ -7,8 +7,8 @@ import java.util.*;
 public class OneRoundDes {
     private int KEYSIZE = 64; // in bits
     private String KEY;
-    private String LEFTKEY="";
-    private String RIGHTKEY="";
+    private String LEFTKEY = "";
+    private String RIGHTKEY = "";
     private int SUBKEYSIZE = 28;
     private int NUMBEROFROUNDS = 16;
     private List<Integer> LEFTPC1 = Arrays.asList(
@@ -128,7 +128,8 @@ public class OneRoundDes {
         //System.out.println(KEY);
 
     }
-    public OneRoundDes(String KEY){
+
+    public OneRoundDes(String KEY) {
         this.KEY = KEY;
         permutedChoiceOne();
     }
@@ -167,7 +168,7 @@ public class OneRoundDes {
         return expandedText.toString();
     }
 
-    private String XORFunction(String A,String B,int n){
+    private String XORFunction(String A, String B, int n) {
         StringBuilder afterXOR = new StringBuilder();
 
         for (int i = 0; i < n; ++i) {
@@ -186,7 +187,7 @@ public class OneRoundDes {
         String newLeftText = new String(rightText);
 
         rightText = expand(rightText);
-        String afterXOR = XORFunction(rightText,subKey,48);
+        String afterXOR = XORFunction(rightText, subKey, 48);
 
         StringBuilder sBoxOutput = new StringBuilder();
         for (int i = 0; i < 48; i += 6) {
@@ -204,7 +205,7 @@ public class OneRoundDes {
             afterP.append(sBoxOutput.charAt(pos - 1));
         }
 
-        String finalOut = XORFunction(afterP.toString(),leftText,32);
+        String finalOut = XORFunction(afterP.toString(), leftText, 32);
         //left == finalOut
 
 
@@ -214,33 +215,38 @@ public class OneRoundDes {
 
     public String encrypt(String plainText) {
 
-        //String binaryRep = toBinary(plainText);
-        String binaryRep = InitialPermutation(plainText);
-        String subKey = getRoundKey(1);
-        String cipherText = roundFunction(binaryRep.substring(0, 32), binaryRep.substring(32, 64), subKey,1);
-//        for (int roundNumber = 2; roundNumber <= NUMBEROFROUNDS; roundNumber++) {
-//            subKey = getRoundKey(roundNumber);
-//            cipherText = roundFunction(cipherText.substring(0, 32), cipherText.substring(32, 64), subKey,roundNumber);
-//        }
-        return cipherText;
+        String binaryRep = toBinary(plainText);
+        binaryRep = InitialPermutation(binaryRep);
 
-        //return InverseInitialPermutation(cipherText);
+        String subKey = getRoundKey(1);
+        String cipherText = roundFunction(binaryRep.substring(0, 32), binaryRep.substring(32, 64), subKey, 1);
+        for (int roundNumber = 2; roundNumber <= NUMBEROFROUNDS; roundNumber++) {
+            subKey = getRoundKey(roundNumber);
+            cipherText = roundFunction(cipherText.substring(0, 32), cipherText.substring(32, 64), subKey, roundNumber);
+        }
+
+        cipherText = cipherText.substring(32, 64) + cipherText.substring(0, 32);
+
+        return binaryToHex(InverseInitialPermutation(cipherText));
     }
-//    public String decrypt(String cipherText){
-//        //String binaryRep = hexToBinary(cipherText);
-//        String binaryRep = InitialPermutation(cipherText);
-//
-//        String subKey = getRoundKey(16);
-//        String plainText = roundFunction(binaryRep.substring(0, 32), binaryRep.substring(32, 64), subKey,16);
-//        for (int roundNumber = NUMBEROFROUNDS-1; roundNumber >= 1; roundNumber--) {
-//            subKey = getRoundKey(roundNumber);
-//            plainText = roundFunction(plainText.substring(0, 32), plainText.substring(32, 64), subKey,roundNumber);
-//        }
-//        //System.out.println(plainText);
-//
-//        return InverseInitialPermutation(plainText);
-//
-//    }
+
+    public String decrypt(String cipherText) {
+        String binaryRep = hexToBinary(cipherText);
+
+        binaryRep = InitialPermutation(binaryRep);
+
+        String subKey = getRoundKey(16);
+        String plainText = roundFunction(binaryRep.substring(0, 32), binaryRep.substring(32, 64), subKey, 16);
+        for (int roundNumber = NUMBEROFROUNDS - 1; roundNumber >= 1; roundNumber--) {
+            subKey = getRoundKey(roundNumber);
+            plainText = roundFunction(plainText.substring(0, 32), plainText.substring(32, 64), subKey, roundNumber);
+        }
+        plainText = plainText.substring(32, 64) + plainText.substring(0, 32);
+        //System.out.println(plainText);
+
+        return fromBinary(InverseInitialPermutation(plainText));
+
+    }
 
 
     private static String toBinary(String text) {
@@ -263,7 +269,7 @@ public class OneRoundDes {
         return binary.toString();
     }
 
-    private  String fromBinary(String binary) {
+    private String fromBinary(String binary) {
         StringBuilder textBuilder = new StringBuilder();
 
         for (int i = 0; i < binary.length(); i += 8) {
@@ -287,8 +293,8 @@ public class OneRoundDes {
         for (int pos : LEFTPC1) {
             this.LEFTKEY = this.LEFTKEY + KEY.charAt(pos - 1);
         }
-        System.out.println(LEFTKEY+RIGHTKEY);
     }
+
     private String binaryToHex(String binary) {
         StringBuilder hexBuilder = new StringBuilder();
 
@@ -300,6 +306,7 @@ public class OneRoundDes {
 
         return hexBuilder.toString();
     }
+
     private String hexToBinary(String hex) {
         StringBuilder binaryBuilder = new StringBuilder();
 
@@ -344,16 +351,14 @@ public class OneRoundDes {
     public static void main(String[] args) {
         //0000000100100011010001010110011110001001101010111100110111101111
 
-        OneRoundDes Ds = new OneRoundDes("0000000100100011010001010110011110001001101010111100110111101111");
-        String text = "0000000100100011010001010110011110001001101010111100110111101111";
+        OneRoundDes Ds = new OneRoundDes();
+        String text = "hello";
         String cipher = Ds.encrypt(text);
-        System.out.println("The main text is: "+text);
+        System.out.println("The main text is: " + text);
         System.out.println("The encrypted text is: " + cipher);
-//        String decipher = Ds.decrypt(cipher);
-//        System.out.println("The decrypted text is: " + decipher);
+        String decipher = Ds.decrypt(cipher);
+        System.out.println("The decrypted text is: " + decipher);
 
-//        String binaryChar = String.format("%8s", Integer.toBinaryString('a')).replace(' ', '0');
-//        System.out.println(binaryChar);
 
     }
 }
