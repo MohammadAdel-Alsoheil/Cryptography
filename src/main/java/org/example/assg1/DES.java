@@ -9,6 +9,7 @@ public class DES {
     private String RIGHTKEY = "";
     private int SUBKEYSIZE = 28;
     private int NUMBEROFROUNDS = 16;
+    private String[] SUBKEYS = new String[NUMBEROFROUNDS];
     private List<Integer> LEFTPC1 = Arrays.asList(
             57, 49, 41, 33, 25, 17, 9,
             1, 58, 50, 42, 34, 26, 18,
@@ -233,10 +234,10 @@ public class DES {
 
         binaryRep = InitialPermutation(binaryRep);
 
-        String subKey = getRoundKey(16);
+        String subKey = SUBKEYS[15];
         String plainText = roundFunction(binaryRep.substring(0, 32), binaryRep.substring(32, 64), subKey, 16);
         for (int roundNumber = NUMBEROFROUNDS - 1; roundNumber >= 1; roundNumber--) {
-            subKey = getRoundKey(roundNumber);
+            subKey = SUBKEYS[roundNumber-1];
             plainText = roundFunction(plainText.substring(0, 32), plainText.substring(32, 64), subKey, roundNumber);
         }
         plainText = plainText.substring(32, 64) + plainText.substring(0, 32);
@@ -319,36 +320,37 @@ public class DES {
     }
 
 
-    private String leftCircularShift(int roundNumber) {
-        String LeftSubKey = new String(LEFTKEY);
-        String RightSubKey = new String(RIGHTKEY);
+    private void leftCircularShift(int roundNumber) {
+
 
         if (roundNumber == 1 || roundNumber == 2 || roundNumber == 9 || roundNumber == 16) {
-            LeftSubKey = LeftSubKey.substring(1) + LeftSubKey.charAt(0);
-            RightSubKey = RightSubKey.substring(1) + RightSubKey.charAt(0);
+            LEFTKEY = LEFTKEY.substring(1) + LEFTKEY.charAt(0);
+            RIGHTKEY = RIGHTKEY.substring(1) + RIGHTKEY.charAt(0);
         } else {
-            LeftSubKey = LeftSubKey.substring(2) + LeftSubKey.substring(0, 2);
-            RightSubKey = RightSubKey.substring(2) + RightSubKey.substring(0, 2);
+            LEFTKEY = LEFTKEY.substring(2) + LEFTKEY.substring(0, 2);
+            RIGHTKEY = RIGHTKEY.substring(2) + RIGHTKEY.substring(0, 2);
         }
-        return LeftSubKey + RightSubKey;
     }
 
-    private String permutedChoiceTwo(String key) {
+    private String permutedChoiceTwo(String key, int roundNumber) {
         String subkey = "";
         for (int pos : PC2) {
             subkey = subkey + key.charAt(pos - 1);
         }
+        SUBKEYS[roundNumber-1] = subkey;
         return subkey;
     }
 
     private String getRoundKey(int roundNumber) {
-        return permutedChoiceTwo(leftCircularShift(roundNumber));
+        leftCircularShift(roundNumber);
+        return permutedChoiceTwo(LEFTKEY+RIGHTKEY,roundNumber);
     }
 
 
     public static void main(String[] args) {
         //0000000100100011010001010110011110001001101010111100110111101111
 
+        // make sure your input is 64 bits or less, I will address this in the future
         DES Ds = new DES();
         String text = "hello";
         String cipher = Ds.encrypt(text);
